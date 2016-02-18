@@ -78,6 +78,7 @@ for post in posts:
 
 signatureMatrix = {postId:[42345600 for i in range(hashNumber)] for postId in postIds}
 shingleMatrixLength = len(shingleMatrix)
-print(createSignatureMatrix(shingleMatrixLength))
+signatureMatrix = createSignatureMatrix(shingleMatrixLength)
+
 print("TIME taken")
 print(time.time() - start_time)
