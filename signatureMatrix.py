@@ -46,7 +46,9 @@ def hashFunction(shingle, length):
         hashValues.append((randomSamples[0][i] * shingle + randomSamples[1][i]) % length)
     return hashValues
 
-def createSignatureMatrix(shingleMatrixLength):  
+def createSignatureMatrix():  
+    signatureMatrix = {postId:[42345600 for i in range(hashNumber)] for postId in postIds}
+    shingleMatrixLength = len(shingleMatrix)
     for shingle in shingleMatrix:
         hashValues = hashFunction(shingle, shingleMatrixLength)
         for postId in shingleMatrix[shingle]:
@@ -76,9 +78,7 @@ for post in posts:
     createShingle(post[0], postContent)
     postIds.append(post[0])
 
-signatureMatrix = {postId:[42345600 for i in range(hashNumber)] for postId in postIds}
-shingleMatrixLength = len(shingleMatrix)
-signatureMatrix = createSignatureMatrix(shingleMatrixLength)
+signatureMatrix = createSignatureMatrix()
 
 print("TIME taken")
 print(time.time() - start_time)
