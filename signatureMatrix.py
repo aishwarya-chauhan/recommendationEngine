@@ -34,7 +34,7 @@ def filterPostContent(data):
     data = re.sub('[^\s0-9A-Za-zÀ-ÿ]|\s{2,}|\n', '', data)
     return(data)
 
-def createShingle(postId, data):
+def createShingleMatrix(postId, data):
   """ To create shingles of length SHINGLE_LENGTH """
   for i in range(len(data) - SHINGLE_LENGTH - 1):
     shingle = data[i : i + SHINGLE_LENGTH]
@@ -80,7 +80,7 @@ posts = getPosts()
 
 for post in posts:
     postContent = filterPostContent(post[1])
-    createShingle(post[0], postContent)
+    createShingleMatrix(post[0], postContent)
     postIds.append(post[0])
 
 signatureMatrix = createSignatureMatrix()
