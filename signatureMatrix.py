@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 start_time = time.time()
 SHINGLE_LENGTH = 9
-hashNumber = 10
+hashNumber = 100
 shingleMatrix = {}
 postIds = []
 
@@ -65,7 +65,7 @@ def getPosts():
         FROM     wp_posts 
         WHERE    post_status = 'publish'
         AND      post_type = 'normal'
-        ORDER BY Id desc LIMIT 50
+        ORDER BY Id desc LIMIT 1000
     """)
     posts = cursor.fetchall()
     cursor.close()
