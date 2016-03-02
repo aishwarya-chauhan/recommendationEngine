@@ -108,6 +108,7 @@ candidatePairs = getCandidatePairs()
 
 print("candidate Pairs are: ")
 
+
 for candidate in candidatePairs:
     if len(candidatePairs[candidate]) > 1:
         print(candidatePairs[candidate])
