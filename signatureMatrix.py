@@ -9,11 +9,13 @@ from html.parser import HTMLParser
 start_time = time.time()
 SHINGLE_LENGTH = 3
 HASH_NUMBER = 100
-shingleMatrix = {}
+BANDS=20
+ROWS=5
 postIds = []
+shingleMatrix = {}
+candidatePairs={}
 maxShingleID = 2**32-1
 nextPrime = 4294967311
-
 #Random samples to generate 10 random hash fuctions.
 randomSamples = [random.sample(range(maxShingleID), HASH_NUMBER) for i in range(2)]
 
@@ -64,7 +66,6 @@ def createShingleMatrix(postId, data):
         else:
             shingleMatrix[hashedShingle] = [postId]
 
-
 def hashFunction(shingle, length):
     """ To create a list of HASH_NUMBER hash functions """
     hashValues = []
@@ -83,6 +84,17 @@ def createSignatureMatrix():
                     signatureMatrix[postId][numHashes] = hashValues[numHashes]
     return(signatureMatrix)
 
+def getCandidatePairs():
+    for band in range(BANDS):
+        for docid in signatureMatrix:
+            strToNum = []
+            for hashIndex in range(2 * band , 2 * band + ROWS):
+                strToNum.append(signatureMatrix[docid][hashIndex])
+            strToNum = [str(x) for x in strToNum]
+            hashValue = int(''.join(strToNum)) % 10000
+            candidatePairs.setdefault(hashValue,[]).append(docid)
+    return(candidatePairs)
+
 posts = getPosts()
 
 for post in posts:
@@ -92,24 +104,13 @@ for post in posts:
 
 signatureMatrix = createSignatureMatrix()
 
-for i in signatureMatrix:
-    print(i," : ", signatureMatrix[i])
+candidatePairs = getCandidatePairs()
 
+print("candidate Pairs are: ")
 
-keyList=list(signatureMatrix)
-max=0
-print(" ")
-for docid in range(len(keyList)):
-    for doid in range(docid+1,len(keyList)):
-        count = 0
-        for k in range(HASH_NUMBER):
-            count = count + (signatureMatrix[keyList[docid]][k] == signatureMatrix[keyList[doid]][k])
-        print(keyList[docid]," 's similarity to ",keyList[doid]," count", count)
-        if max <= count:
-            max=count
-            d=docid
-            c=doid
-print("max count is btw",d+1, " & ", c+1)
+for candidate in candidatePairs:
+    if len(candidatePairs[candidate]) > 1:
+        print(candidatePairs[candidate])
+
 print("TIME taken")
 print(time.time() - start_time)
-    
