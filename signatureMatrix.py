@@ -9,15 +9,15 @@ from html.parser import HTMLParser
 start_time = time.time()
 SHINGLE_LENGTH = 3
 HASH_NUMBER = 100
-BANDS=20
-ROWS=5
+BANDS = 20
+ROWS = 5
 postIds = []
 shingleMatrix = {}
-candidatePairs={}
-maxShingleID = 2**32-1
-nextPrime = 4294967311
-#Random samples to generate 10 random hash fuctions.
+candidatePairs = {}
+recommendations = {}
+maxShingleID = 2**32 - 1
 randomSamples = [random.sample(range(maxShingleID), HASH_NUMBER) for i in range(2)]
+nextPrime = 4294967311
 
 class HTMLStripper(HTMLParser):
     def __init__(self):
@@ -41,7 +41,6 @@ def getPosts():
         AND      post_type = 'normal'
         AND   id in(168506,168610,168625,168637)
     """)
-    #168506=medicine,168610=asus router ,168625=z5,168637=z5..
     posts = cursor.fetchall()
     cursor.close()
     return posts
@@ -54,7 +53,7 @@ def filterPostContent(data):
     data = re.sub('[^\s0-9A-Za-zÀ-ÿ]', ' ', data)
     return(data)
 
-def createShingleMatrix(postId, data):
+def createShingleMatrix(shingleMatrix ,postId, data):
   """ To create shingles of length SHINGLE_LENGTH """
   data = data.split()
   for i in range(len(data) - SHINGLE_LENGTH + 1):
@@ -64,27 +63,29 @@ def createShingleMatrix(postId, data):
         if hashedShingle in shingleMatrix:
             shingleMatrix[hashedShingle].append(postId)
         else:
-            shingleMatrix[hashedShingle] = [postId]
-
-def hashFunction(shingle, length):
+            shingleMatrix[hashedShingle] = [postId] 
+  return(shingleMatrix)
+ 
+def hashFunction(shingle, randomSamples, HASH_NUMBER, nextPrime):
     """ To create a list of HASH_NUMBER hash functions """
     hashValues = []
-    for i in range(HASH_NUMBER):
-        hashValues.append(((randomSamples[0][i] * shingle + randomSamples[1][i]) % nextPrime)%(nextPrime-1))
+    for index in range(HASH_NUMBER):
+        hashValues.append(((randomSamples[0][index] * shingle + randomSamples[1][index]) % nextPrime) % (nextPrime - 1))
     return hashValues
 
-def createSignatureMatrix():  
-    signatureMatrix = {postId:[nextPrime+1 for i in range(HASH_NUMBER)] for postId in postIds}
-    shingleMatrixLength = len(shingleMatrix)
+def createSignatureMatrix(postIds, shingleMatrix, randomSamples, HASH_NUMBER, nextPrime):
+    """ To generate MinHash Signatures """
+    signatureMatrix = {postId:[nextPrime + 1 for index in range(HASH_NUMBER)] for postId in postIds}
     for shingle in shingleMatrix:
-        hashValues = hashFunction(shingle, shingleMatrixLength)
+        hashValues = hashFunction(shingle,randomSamples, HASH_NUMBER, nextPrime)
         for postId in shingleMatrix[shingle]:
             for numHashes in range(HASH_NUMBER):
                 if hashValues[numHashes] < signatureMatrix[postId][numHashes]:
                     signatureMatrix[postId][numHashes] = hashValues[numHashes]
     return(signatureMatrix)
 
-def getCandidatePairs():
+def getCandidatePairs(signatureMatrix, BANDS, ROWS):
+    """ To get list of candidate pairs in hash buckets """
     for band in range(BANDS):
         for docid in signatureMatrix:
             strToNum = []
@@ -92,26 +93,52 @@ def getCandidatePairs():
                 strToNum.append(signatureMatrix[docid][hashIndex])
             strToNum = [str(x) for x in strToNum]
             hashValue = int(''.join(strToNum)) % 10000
-            candidatePairs.setdefault(hashValue,[]).append(docid)
+            if hashValue in candidatePairs and docid not in candidatePairs[hashValue]:
+                candidatePairs[hashValue].append(docid)
+            else:
+                candidatePairs[hashValue] = [docid]
     return(candidatePairs)
 
-posts = getPosts()
+def insertSimilarPosts(candidatePairs):
+    """ To insert recommended postIds in the database """
+    connection = mysql.connector.connect(user='root', password='', host='localhost', database='posts')
+    cursor = connection.cursor()
+    for candidate in candidatePairs:
+        if len(candidatePairs[candidate]) > 1:
+            for index, postId in enumerate(candidatePairs[candidate]):
+                if postId in recommendations:
+                    recommendations[postId] += candidatePairs[candidate][:index] + candidatePairs[candidate][index + 1:]
+                else:
+                    recommendations[postId] = candidatePairs[candidate][:index] + candidatePairs[candidate][index + 1:]
+    for key in recommendations:
+        recommendations[key] = list(set(recommendations[key]))
+        similarPostId = ','.join(str(postId) for postId in recommendations[key])
+        format_str = """INSERT IGNORE INTO candidates(postId, similarPostIds) 
+                        VALUES('{postId}', '{similarPostId}')"""
+        sql_command = format_str.format(postId = key, similarPostId = similarPostId)
+        cursor.execute(sql_command)
+    connection.commit()
+    cursor.close()
 
-for post in posts:
-    postContent = filterPostContent(post[1])
-    createShingleMatrix(post[0], postContent)
-    postIds.append(post[0])
+if __name__ == '__main__':
+    
+    posts = getPosts()
+    
+    for post in posts:
+        postContent = filterPostContent(post[1])
+        createShingleMatrix(shingleMatrix, post[0], postContent)
+        postIds.append(post[0])
+    
+    signatureMatrix = createSignatureMatrix(postIds, shingleMatrix, randomSamples, HASH_NUMBER, nextPrime)
+    
+    candidatePairs = getCandidatePairs(signatureMatrix, BANDS, ROWS)
+    
+    print("candidate Pairs are: ")
+    for candidate in candidatePairs:
+        if len(candidatePairs[candidate]) > 1:
+            print(candidatePairs[candidate])
 
-signatureMatrix = createSignatureMatrix()
-
-candidatePairs = getCandidatePairs()
-
-print("candidate Pairs are: ")
-
-
-for candidate in candidatePairs:
-    if len(candidatePairs[candidate]) > 1:
-        print(candidatePairs[candidate])
-
-print("TIME taken")
-print(time.time() - start_time)
+    insertSimilarPosts(candidatePairs)
+    
+    print("TIME taken")
+    print(time.time() - start_time)
