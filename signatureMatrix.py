@@ -39,8 +39,8 @@ def getPosts():
         FROM     wp_posts 
         WHERE    post_status = 'publish'
         AND      post_type = 'normal'
-        AND   id in(168506,168610,168625,168637)
-    """)
+        ORDER BY Id desc LIMIT 1000
+        """)
     posts = cursor.fetchall()
     cursor.close()
     return posts
@@ -110,18 +110,20 @@ def insertSimilarPosts(candidatePairs):
                     recommendations[postId] += candidatePairs[candidate][:index] + candidatePairs[candidate][index + 1:]
                 else:
                     recommendations[postId] = candidatePairs[candidate][:index] + candidatePairs[candidate][index + 1:]
+    cursor.execute(""" TRUNCATE TABLE candidates """)
     for key in recommendations:
         recommendations[key] = list(set(recommendations[key]))
         similarPostId = ','.join(str(postId) for postId in recommendations[key])
-        format_str = """INSERT IGNORE INTO candidates(postId, similarPostIds) 
-                        VALUES('{postId}', '{similarPostId}')"""
+        format_str = """
+                      INSERT IGNORE INTO candidates(postId, similarPostIds) 
+                      VALUES('{postId}', '{similarPostId}')
+                    """
         sql_command = format_str.format(postId = key, similarPostId = similarPostId)
         cursor.execute(sql_command)
     connection.commit()
     cursor.close()
 
 if __name__ == '__main__':
-    
     posts = getPosts()
     
     for post in posts:
