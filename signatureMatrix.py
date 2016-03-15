@@ -39,7 +39,7 @@ def getPosts():
         FROM     wp_posts 
         WHERE    post_status = 'publish'
         AND      post_type = 'normal'
-        ORDER BY Id desc LIMIT 1000
+        ORDER BY Id DESC LIMIT 1000
         """)
     posts = cursor.fetchall()
     cursor.close()
