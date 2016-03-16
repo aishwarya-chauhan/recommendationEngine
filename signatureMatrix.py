@@ -9,7 +9,7 @@ from html.parser import HTMLParser
 start_time = time.time()
 SHINGLE_LENGTH = 3
 HASH_NUMBER = 100
-BANDS = 20
+BANDS = 20 
 ROWS = 5
 postIds = []
 shingleMatrix = {}
@@ -88,11 +88,10 @@ def getCandidatePairs(signatureMatrix, BANDS, ROWS):
     """ To get list of candidate pairs in hash buckets """
     for band in range(BANDS):
         for docid in signatureMatrix:
-            strToNum = []
-            for hashIndex in range(2 * band , 2 * band + ROWS):
-                strToNum.append(signatureMatrix[docid][hashIndex])
-            strToNum = [str(x) for x in strToNum]
-            hashValue = int(''.join(strToNum)) % 10000
+            rowValue = []
+            for hashIndex in range(band * ROWS, ROWS * (band + 1)):
+                rowValue.append(signatureMatrix[docid][hashIndex])
+            hashValue = binascii.crc32((",".join(map(str, rowValue))).encode('utf-8')) & 0xfffffff
             if hashValue in candidatePairs and docid not in candidatePairs[hashValue]:
                 candidatePairs[hashValue].append(docid)
             else:
@@ -120,11 +119,31 @@ def insertSimilarPosts(candidatePairs):
                     """
         sql_command = format_str.format(postId = key, similarPostId = similarPostId)
         cursor.execute(sql_command)
+    print("recommendations: ",recommendations)
     connection.commit()
     cursor.close()
 
+def jacaardSimilarity(posts):
+    """ To calculate jaccard similarity of all candidate pairs """
+    jaccard_dict = {}
+    for post in posts:
+        data = filterPostContent(post[1])
+        data = data.split()
+        for i in range(len(data) - SHINGLE_LENGTH + 1):
+            shingle = data[i : i + SHINGLE_LENGTH]
+            shingle = str(shingle)
+            jaccard_dict.setdefault(post[0],[]).append(shingle)  
+    for key in jaccard_dict:
+        for keynext in jaccard_dict:
+            if keynext != key:
+                common = set(jaccard_dict[key]).intersection( set(jaccard_dict[keynext]))
+                a = len(common) / (len(jaccard_dict[key]) + len(jaccard_dict[keynext]))
+                print( key , " & ", keynext, " = ", a)
+    
 if __name__ == '__main__':
     posts = getPosts()
+
+    #jacaardSimilarity(posts)
     
     for post in posts:
         postContent = filterPostContent(post[1])
@@ -132,14 +151,9 @@ if __name__ == '__main__':
         postIds.append(post[0])
     
     signatureMatrix = createSignatureMatrix(postIds, shingleMatrix, randomSamples, HASH_NUMBER, nextPrime)
-    
+    del shingleMatrix
     candidatePairs = getCandidatePairs(signatureMatrix, BANDS, ROWS)
-    
-    print("candidate Pairs are: ")
-    for candidate in candidatePairs:
-        if len(candidatePairs[candidate]) > 1:
-            print(candidatePairs[candidate])
-
+    del signatureMatrix
     insertSimilarPosts(candidatePairs)
     
     print("TIME taken")
