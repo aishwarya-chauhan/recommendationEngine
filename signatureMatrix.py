@@ -6,11 +6,12 @@ import time
 import unicodedata
 from html.parser import HTMLParser
 
+random.seed(10)
 start_time = time.time()
 SHINGLE_LENGTH = 3
 HASH_NUMBER = 100
-BANDS = 20 
-ROWS = 5
+BANDS = 25 
+ROWS = 4
 postIds = []
 shingleMatrix = {}
 candidatePairs = {}
@@ -122,28 +123,9 @@ def insertSimilarPosts(candidatePairs):
     print("recommendations: ",recommendations)
     connection.commit()
     cursor.close()
-
-def jacaardSimilarity(posts):
-    """ To calculate jaccard similarity of all candidate pairs """
-    jaccard_dict = {}
-    for post in posts:
-        data = filterPostContent(post[1])
-        data = data.split()
-        for i in range(len(data) - SHINGLE_LENGTH + 1):
-            shingle = data[i : i + SHINGLE_LENGTH]
-            shingle = str(shingle)
-            jaccard_dict.setdefault(post[0],[]).append(shingle)  
-    for key in jaccard_dict:
-        for keynext in jaccard_dict:
-            if keynext != key:
-                common = set(jaccard_dict[key]).intersection( set(jaccard_dict[keynext]))
-                a = len(common) / (len(jaccard_dict[key]) + len(jaccard_dict[keynext]))
-                print( key , " & ", keynext, " = ", a)
-    
+                
 if __name__ == '__main__':
     posts = getPosts()
-
-    #jacaardSimilarity(posts)
     
     for post in posts:
         postContent = filterPostContent(post[1])
