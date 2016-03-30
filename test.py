@@ -1,5 +1,4 @@
 import unittest
-import unittest.mock
 import signatureMatrix as mining
 
 class mytest(unittest.TestCase):
@@ -41,11 +40,11 @@ class mytest(unittest.TestCase):
         dataOutput = mining.createSignatureMatrix(self.postIds, self.shingleMatrix)
         print(dataOutput)
 
-    def testGetCandidatePairs(self):
+    def testGetRecommendedPosts(self):
         mining.BANDS = self.BANDS 
         mining.ROWS =  self.ROWS
-        dataOutput = mining.getCandidatePairs(self.signatureMatrixTest)
-        print(dataOutput)
+        dataOutput = {1: [2, 3], 2: [1, 4], 3: [1], 4: [2]}
+        self.assertEqual(mining.getRecommendedPosts(self.signatureMatrixTest), dataOutput)
 
 if __name__ == '__main__':
     unittest.main()
