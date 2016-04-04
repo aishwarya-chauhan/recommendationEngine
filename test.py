@@ -1,5 +1,5 @@
 import unittest
-import signatureMatrix as mining
+import recommendations as mining
 
 class mytest(unittest.TestCase):
     
@@ -17,7 +17,7 @@ class mytest(unittest.TestCase):
         
     def testFilterPostContent(self):
         dataInput = "<p>Sony aprovechará para que.. sea la base de la gestión de perfiles de usuarios, \nlo que</p>"
-        dataOutput = "Sony aprovechará base gestión perfiles usuarios"
+        dataOutput = "Sony aprovechará para que   sea la base de la gestión de perfiles de usuarios  \nlo que"
         self.assertEqual(mining.filterPostContent(dataInput), dataOutput)
 
     def testCreateShingleMatrix(self):
