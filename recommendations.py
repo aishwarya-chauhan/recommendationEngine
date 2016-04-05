@@ -13,6 +13,8 @@ BANDS = 33
 ROWS = 3
 nextPrime = 4294967311
 maxShingleID = 2**32 - 1
+BAND_RANGE = range(BANDS)
+HASH_NUMBER_RANGE = range(HASH_NUMBER)
 randomSamples = [random.sample(range(maxShingleID), HASH_NUMBER) for i in range(2)]
 postIds = []
 shingleMatrix = {}
@@ -38,7 +40,7 @@ def getPosts():
         FROM     wp_posts 
         WHERE    post_status = 'publish'
         AND      post_type = 'normal'
-        ORDER BY Id DESC LIMIT 100
+        ORDER BY Id DESC LIMIT 1000
         """)
     posts = cursor.fetchall()
     cursor.close()
@@ -68,7 +70,7 @@ def createShingleMatrix(shingleMatrix ,postId, data):
 def hashFunction(shingle):
     """ To create a list of HASH_NUMBER hash functions """
     hashValues = []
-    for index in range(HASH_NUMBER):
+    for index in HASH_NUMBER_RANGE:
         hashValues.append(((randomSamples[0][index] * shingle + randomSamples[1][index]) % nextPrime) % (nextPrime - 1))
     return hashValues
 
@@ -78,14 +80,14 @@ def createSignatureMatrix(postIds, shingleMatrix):
     for shingle in shingleMatrix:
         hashValues = hashFunction(shingle)
         for postId in shingleMatrix[shingle]:
-            for numHashes in range(HASH_NUMBER):
+            for numHashes in HASH_NUMBER_RANGE:
                 if hashValues[numHashes] < signatureMatrix[postId][numHashes]:
                     signatureMatrix[postId][numHashes] = hashValues[numHashes]
     return signatureMatrix
 
 def getRecommendedPosts(signatureMatrix):
     """ To get list of candidate pairs in hash buckets """
-    for band in range(BANDS):
+    for band in BAND_RANGE:
         bandCandidates = {}
         for postId in signatureMatrix:
             postValue = []
