@@ -15,6 +15,7 @@ class mytest(unittest.TestCase):
         self.ROWS=2
         self.BAND_RANGE = range(self.BANDS)
         self.HASH_NUMBER_RANGE = range(self.HASH_NUMBER)
+
         self.signatureMatrixTest = {1: [3, 2, 2, 0], 2: [5, 0, 2, 0], 3:[3,2,5,0], 4:[5,0,4,2]}
         
     def testFilterPostContent(self):
