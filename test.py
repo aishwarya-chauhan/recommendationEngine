@@ -13,6 +13,9 @@ class mytest(unittest.TestCase):
         self.HASH_NUMBER = 4
         self.BANDS=2
         self.ROWS=2
+        self.BAND_RANGE = range(self.BANDS)
+        self.HASH_NUMBER_RANGE = range(self.HASH_NUMBER)
+
         self.signatureMatrixTest = {1: [3, 2, 2, 0], 2: [5, 0, 2, 0], 3:[3,2,5,0], 4:[5,0,4,2]}
         
     def testFilterPostContent(self):
@@ -31,18 +34,21 @@ class mytest(unittest.TestCase):
         mining.randomSamples = self.randomSamples
         mining.HASH_NUMBER = self.HASH_NUMBER
         mining.nextPrime = self.nextPrime
+        mining.HASH_NUMBER_RANGE = self.HASH_NUMBER_RANGE
         self.assertEqual(mining.hashFunction(dataInput), dataOutput)
    
     def testCreateSignatreMatrix(self):
         mining.randomSamples = self.randomSamples
         mining.HASH_NUMBER = self.HASH_NUMBER
         mining.nextPrime = self.nextPrime
+        mining.HASH_NUMBER_RANGE = self.HASH_NUMBER_RANGE
         dataOutput = mining.createSignatureMatrix(self.postIds, self.shingleMatrix)
         print(dataOutput)
 
     def testGetRecommendedPosts(self):
         mining.BANDS = self.BANDS 
         mining.ROWS =  self.ROWS
+        mining.BAND_RANGE = self.BAND_RANGE
         dataOutput = {1: [2, 3], 2: [1, 4], 3: [1], 4: [2]}
         self.assertEqual(mining.getRecommendedPosts(self.signatureMatrixTest), dataOutput)
 
