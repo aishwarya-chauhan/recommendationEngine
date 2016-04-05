@@ -11,12 +11,12 @@ SHINGLE_LENGTH = 3
 HASH_NUMBER = 99
 BANDS = 33
 ROWS = 3
+nextPrime = 4294967311
+maxShingleID = 2**32 - 1
+randomSamples = [random.sample(range(maxShingleID), HASH_NUMBER) for i in range(2)]
 postIds = []
 shingleMatrix = {}
 recommendations = {}
-maxShingleID = 2**32 - 1
-randomSamples = [random.sample(range(maxShingleID), HASH_NUMBER) for i in range(2)]
-nextPrime = 4294967311
 
 class HTMLStripper(HTMLParser):
     def __init__(self):
@@ -85,7 +85,6 @@ def createSignatureMatrix(postIds, shingleMatrix):
 
 def getRecommendedPosts(signatureMatrix):
     """ To get list of candidate pairs in hash buckets """
-    keyList = []
     for band in range(BANDS):
         bandCandidates = {}
         for postId in signatureMatrix:
