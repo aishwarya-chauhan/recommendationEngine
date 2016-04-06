@@ -11,11 +11,11 @@ SHINGLE_LENGTH = 3
 HASH_NUMBER = 99
 BANDS = 33
 ROWS = 3
-nextPrime = 4294967311
-maxShingleID = 2**32 - 1
+NEXT_PRIME = 4294967311
+MAX_SHINGLE_ID = 2**32 - 1
 BAND_RANGE = range(BANDS)
 HASH_NUMBER_RANGE = range(HASH_NUMBER)
-randomSamples = [random.sample(range(maxShingleID), HASH_NUMBER) for i in range(2)]
+randomSamples = [random.sample(range(MAX_SHINGLE_ID), HASH_NUMBER) for i in range(2)]
 postIds = []
 shingleMatrix = {}
 recommendations = {}
@@ -71,12 +71,12 @@ def hashFunction(shingle):
     """ To create a list of HASH_NUMBER hash functions """
     hashValues = []
     for index in HASH_NUMBER_RANGE:
-        hashValues.append(((randomSamples[0][index] * shingle + randomSamples[1][index]) % nextPrime) % (nextPrime - 1))
+        hashValues.append(((randomSamples[0][index] * shingle + randomSamples[1][index]) % NEXT_PRIME) % (NEXT_PRIME - 1))
     return hashValues
 
 def createSignatureMatrix(postIds, shingleMatrix):
     """ To generate MinHash Signatures """
-    signatureMatrix = {postId:[nextPrime + 1 for index in range(HASH_NUMBER)] for postId in postIds}
+    signatureMatrix = {postId:[NEXT_PRIME + 1 for index in HASH_NUMBER_RANGE] for postId in postIds}
     for shingle in shingleMatrix:
         hashValues = hashFunction(shingle)
         for postId in shingleMatrix[shingle]:

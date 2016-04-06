@@ -1,5 +1,5 @@
 import unittest
-import recommendations as mining
+import recommendationEngine as mining
 
 class mytest(unittest.TestCase):
     
@@ -9,13 +9,12 @@ class mytest(unittest.TestCase):
         self.shingleMatrix = {10:[1],12:[1,2],13:[2],14:[1,2]}
         self.randomSamples = [[1,2,3,4],[3,4,2,1]]
         self.postIds = [1,2]
-        self.nextPrime = 10
+        self.NEXT_PRIME = 10
         self.HASH_NUMBER = 4
         self.BANDS=2
         self.ROWS=2
         self.BAND_RANGE = range(self.BANDS)
         self.HASH_NUMBER_RANGE = range(self.HASH_NUMBER)
-
         self.signatureMatrixTest = {1: [3, 2, 2, 0], 2: [5, 0, 2, 0], 3:[3,2,5,0], 4:[5,0,4,2]}
         
     def testFilterPostContent(self):
@@ -33,14 +32,14 @@ class mytest(unittest.TestCase):
         dataOutput = [3,4,2,1]
         mining.randomSamples = self.randomSamples
         mining.HASH_NUMBER = self.HASH_NUMBER
-        mining.nextPrime = self.nextPrime
+        mining.NEXT_PRIME = self.NEXT_PRIME
         mining.HASH_NUMBER_RANGE = self.HASH_NUMBER_RANGE
         self.assertEqual(mining.hashFunction(dataInput), dataOutput)
    
     def testCreateSignatreMatrix(self):
         mining.randomSamples = self.randomSamples
         mining.HASH_NUMBER = self.HASH_NUMBER
-        mining.nextPrime = self.nextPrime
+        mining.NEXT_PRIME = self.NEXT_PRIME
         mining.HASH_NUMBER_RANGE = self.HASH_NUMBER_RANGE
         dataOutput = mining.createSignatureMatrix(self.postIds, self.shingleMatrix)
         print(dataOutput)
